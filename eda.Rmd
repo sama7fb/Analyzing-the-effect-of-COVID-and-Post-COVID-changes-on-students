@@ -1,0 +1,573 @@
+---
+Title: "Analyzing the effect of COVID and Post-COVID changes on students"
+Name: SAMAPAN KAR
+Dept: Big Data Analytics
+Roll no.: B2330036
+---
+
+# [***INTRODUCTION***]{.underline}
+
+*The COVID-19 had summoned alerting health conditions along with economic and social emergencies. Lockdown and life restrictions were imposed worldwide. These containment measures had resulted in a profound impact on students. The sudden shift to remote learning, social distancing measures and widespread economic hardship - all have contributed to a challenging and disruptive experience for students.*
+
+*Now with COVID being gone, students still find it different to what they were before the pandemic occurred. Not all the students have recovered from the drastic change they had to face and thus a noticeable increase in the screen time, a significant change in the concentration, an overall effect on academic performance and personality -- be it regarding social interactions or preference, is quite prominent among students, even in this post COVID time.*
+
+*So, we may say that the pandemic has left a lasting effect on the day-to-day life of the students. The changes and challenges still faced by them may take a long time to dissolve or, may persist as students continue to learn and grow in the post-COVID world.*
+
+# [***DATA DESCRIPTION***]{.underline}
+
+*A survey was conducted among UG students through a self-made questionnaire across different colleges. My purpose was to obtain unbiased responses from which the effects of COVID-19 on students could be studied.*
+
+```{r}
+rm(list = ls())
+setwd('C:/Users/Samapan Kar/Desktop/eda')
+Data = read.csv("eda.csv")
+Data
+```
+
+[***The following table shows a brief summary of the questionnaire:***]{.underline}
+
+| Variables                         | Type    | Categories                                |
+|-----------------------------------|---------|-------------------------------------------|
+| Studying year                     | Ordinal | 1st / 2nd / 3rd year                      |
+| Gender                            | Nominal | Male / Female                             |
+| Preference for Class mode         | Nominal | Online / Offline                          |
+| Convenience                       | Nominal | Being in class / Watch recorded lectures  |
+| Leisure screen time (lst)         | Ordinal | 0-2hrs, 2-4hrs, 4-6hrs, \>6hrs            |
+| Social awkwardness (soc_awk)      | Nominal | Partly agree / Neutral / Completely agree |
+| Financial Crisis                  | Nominal | Yes / No                                  |
+| Concentration in Home             | Nominal | Yes / No                                  |
+| Concentration in Classroom        | Ordinal | 1 to 5                                    |
+| Uninterrupted Study Time (stdtym) | Ordinal | \<15mins, 15-30 mins, 30-60mins, \>60mins |
+| Academic Performance (acaperf)    | Ordinal | 1 to 5                                    |
+| Pain                              | Nominal | Yes / No                                  |
+| Worry about health                | Ordinal | 1 to 5                                    |
+| Stress Level                      | Ordinal | 1 to 5                                    |
+| Experiencing Negative Feelings    | Ordinal | 1 to 5                                    |
+
+```{r}
+attach(Data)
+library(ggplot2)
+library(DescTools)
+```
+
+[***#Academic Year and Gender of students:***]{.underline}
+
+```{r}
+data.frame(table(year))
+data.frame(table(gender))
+
+ggplot(data.frame(table(year)), aes(x="", y=Freq, fill=year)) +
+  geom_bar(stat="identity", width=1, color="black") +
+  geom_text(aes(label=Freq), position = position_stack(vjust = 0.5)) +
+  coord_polar("y", start=0) +
+  ggtitle('Pie chart of the academic years of the students') +
+  theme_void()
+
+ggplot(data.frame(table(gender)), aes(x="", y=Freq, fill=gender)) +
+  geom_bar(stat="identity", width=1, color="black") +
+  geom_text(aes(label=Freq), position = position_stack(vjust = 0.5)) +
+  coord_polar("y", start=0) +
+  ggtitle('Pie chart of the gender of the students') +
+  theme_void()
+#pie(table(year),col=c('red','blue','green'),main = 'Pie chart of the academic years of students')
+#pie(table(gender),col=c('pink','blue'),main = 'Pie chart of the gender of the students')
+```
+
+[***#Preferred class-mode and convenience of students:***]{.underline}
+
+```{r}
+data.frame(table(class_mode))
+data.frame(table(convenience))
+
+ggplot(data.frame(table(class_mode)), aes(x="", y=Freq, fill=class_mode)) +
+  geom_bar(stat="identity", width=1, color="black") +
+  geom_text(aes(label=Freq), position = position_stack(vjust = 0.5)) +
+  coord_polar("y", start=0) +
+  scale_fill_manual(values = c("red","green")) +
+  ggtitle('Pie chart of the preferred class mode of the students') +
+  theme_void()
+
+ggplot(data.frame(table(convenience)), aes(x="", y=Freq, fill=convenience)) +
+  geom_bar(stat="identity", width=1, color="black") +
+  geom_text(aes(label=Freq), position = position_stack(vjust = 0.5)) +
+  coord_polar("y", start=0) +
+  scale_fill_manual(values = c("skyblue","white")) +
+  ggtitle('Pie chart of the convenience of the students') +
+  theme_void()
+```
+
+# [***ASSOCIATION STUDIES***]{.underline}
+
+*Several measures of association for ordinal variables are based on the numbers of concordant and discordant pairs of observations. A pair of observations is concordant if the subject ranking higher on X also ranks higher on Y. A pair of observations is discordant if the subject ranking higher on X ranks lower on Y.*
+
+*Suppose C denotes the total number of concordant pairs and D denotes the total number of discordant pairs. A measure of association is **Kendall's tau** which is calculated by the formula:* $\pmb{\tau=\frac{C-D}{C+D}}$
+
+*The value of* $\tau \in [-1,1]$ *, where **1** denotes **Strong Association**, **0** denotes **No Association**, **-1** denotes **Strong Disassociation**.*
+
+### [***LEISURE SCREENTIME WITH UNINTERRUPTED STUDY TIME :***]{.underline}
+
+*To get an idea about how these two variables are associated, two questions were asked in the questionnaire as stated below:*
+
+-   *Your Leisure Screen Time? (consisting of 4 options: \<2hrs, 2-4hrs, 4-6hrs, \>6hrs)*
+
+-   *Rate your Uninterrupted Study Time*
+
+*Both of these questions were sub-divided into 3 segments viz., Before Covid, During Covid, and After Covid.*
+
+*The pie diagrams for Uninterrupted study time and Leisure screen time are shown below:*
+
+```{r}
+data.frame(table(stdytm_b))
+data.frame(table(stdytm_d))
+data.frame(table(stdytm_a))
+
+c1 = data.frame(table(stdytm_b))$Freq
+c2 = data.frame(table(stdytm_d))$Freq
+c3 = data.frame(table(stdytm_a))$Freq
+
+
+par(mfrow = c(1,3))
+pie(c1, labels = paste0(c1,'=',round(100*c1/sum(c1),2),'%'),sub = "before COVID",col = rainbow(length(c3)))
+
+pie(c2, labels = paste0(c2,'=',round(100*c2/sum(c2),2),'%'),sub = "during COVID",col = rainbow(length(c3)))
+
+pie(c3, labels = paste0(c3,'=',round(100*c3/sum(c3),2),'%'),sub = "after COVID",col = rainbow(length(c3)))
+
+mtext("Pie charts of Uninterrupted study time",side = 3,line = -2,outer = TRUE)
+
+legend("bottomleft",legend = data.frame(table(stdytm_b))$stdytm_b,fill = rainbow(length(c1)) )
+```
+
+*Before the covid crisis, 56% of the population (i.e., 98 students) had an uninterrupted study time of more than 60mins, which drastically collapsed into only 15% of the population (26 students) during the covid time. After that, 20 more students had responded to again achieve their pre-covid study time, which sums up to 27% of the population (i.e., 46 students). Thus, from the above 3 charts, a quite prominent change in the study time of students can be observed.*
+
+```{r}
+data.frame(table(lst_b))
+data.frame(table(lst_d))
+data.frame(table(lst_a))
+
+c1 = data.frame(table(lst_b))$Freq
+c2 = data.frame(table(lst_d))$Freq
+c3 = data.frame(table(lst_a))$Freq
+
+
+par(mfrow = c(1,3))
+pie(c1, labels = paste0(c1,'=',round(100*c1/sum(c1),2),'%'),sub = "before COVID",col = rainbow(length(c3)))
+
+pie(c2, labels = paste0(c2,'=',round(100*c2/sum(c2),2),'%'),sub = "during COVID",col = rainbow(length(c3)))
+
+pie(c3, labels = paste0(c3,'=',round(100*c3/sum(c3),2),'%'),sub = "after COVID",col = rainbow(length(c3)))
+
+mtext("Pie charts of Leisure screen time",side = 3,line = -2,outer = TRUE)
+
+legend("bottomleft",legend = data.frame(table(lst_b))$lst_b,fill = rainbow(length(c1)) )
+```
+
+*Before the covid crisis, 86.2% of the population (i.e., 150 students) had leisure screen time of less than 4hrs, which abruptly escalated to 88% of the population (153 students) having leisure screen time of more than 4hrs. After that, though many students have recovered from the excessive screen time, yet a significant among of change in the screen time still prevails in this post-covid period.*
+
+*Now to find the association between these two variables we first divide the Uninterrupted study time into three categories:*
+
+-   *Decreased (if the study time in post-covid period is lesser than that of pre-covid period)*
+
+-   *Remained Same (if the study time in post-covid period is same as that of pre-covid period)*
+
+-   *Increased (if the study time in post-covid period is more than that of pre-covid period)*
+
+*Similarly the Leisure screen time is divided into three categories:*
+
+-   *Decreased (if the screen time in post-covid period is lesser than that of pre-covid period)*
+
+-   *Remained Same (if the screen time in post-covid period is same as that of pre-covid period)*
+
+-   *Increased (if the screen time in post-covid period is more than that of pre-covid period)*
+
+```{r}
+lst_b[which(lst_b=="Less than 2 hours")] = '1'
+lst_b[which(lst_b=="2 to 4 hours")] = '2'
+lst_b[which(lst_b=="4 to 6 hours")] = '3'
+lst_b[which(lst_b=="More than 6 hours")] = '4'
+lst_b = as.numeric(lst_b)
+
+lst_a[which(lst_a=="Less than 2 hours")] = '1'
+lst_a[which(lst_a=="2 to 4 hours")] = '2'
+lst_a[which(lst_a=="4 to 6 hours")] = '3'
+lst_a[which(lst_a=="More than 6 hours")] = '4'
+lst_a = as.numeric(lst_a)
+
+stdytm_b[which(stdytm_b=="Less than 15 minutes")] = '1'
+stdytm_b[which(stdytm_b=="15 to 30 minutes")] = '2'
+stdytm_b[which(stdytm_b=="30 to 60 minutes")] = '3'
+stdytm_b[which(stdytm_b=="More than 60 minutes")] = '4'
+stdytm_b = as.numeric(stdytm_b)
+
+stdytm_a[which(stdytm_a=="Less than 15 minutes")] = '1'
+stdytm_a[which(stdytm_a=="15 to 30 minutes")] = '2'
+stdytm_a[which(stdytm_a=="30 to 60 minutes")] = '3'
+stdytm_a[which(stdytm_a=="More than 60 minutes")] = '4'
+stdytm_a = as.numeric(stdytm_a)
+
+a11 = sum(ifelse(lst_b>lst_a & stdytm_b>stdytm_a,1,0))
+a12 = sum(ifelse(lst_b>lst_a & stdytm_b==stdytm_a,1,0))
+a13 = sum(ifelse(lst_b>lst_a & stdytm_b<stdytm_a,1,0))
+a21 = sum(ifelse(lst_b==lst_a & stdytm_b>stdytm_a,1,0))
+a22 = sum(ifelse(lst_b==lst_a & stdytm_b==stdytm_a,1,0))
+a23 = sum(ifelse(lst_b==lst_a & stdytm_b<stdytm_a,1,0))
+a31 = sum(ifelse(lst_b<lst_a & stdytm_b>stdytm_a,1,0))
+a32 = sum(ifelse(lst_b<lst_a & stdytm_b==stdytm_a,1,0))
+a33 = sum(ifelse(lst_b<lst_a & stdytm_b<stdytm_a,1,0))
+
+m1 = matrix(c(a11,a12,a13,a21,a22,a23,a31,a32,a33),nrow = 3,byrow = T,dimnames = list(c('decreased','remained same','increased'),c('decreased','remained same','increased')))
+addmargins(m1)
+```
+
+*Now, with respect to these 3 categories of the two variables, the overall responses are arranged into a 3×3 contingency table shown below :*
+
+| lst \\ stdytm     | decreased | remained same | increased | total |
+|-------------------|-----------|---------------|-----------|-------|
+| **decreased**     | 3         | 7             | 2         | 12    |
+| **remained same** | 19        | 27            | 3         | 49    |
+| **increased**     | 66        | 38            | 9         | 113   |
+| **total**         | 88        | 72            | 14        | 174   |
+
+```{r}
+ConDisPairs(as.table(m1))[c("C","D")]
+```
+
+*So the total number of Concordant pairs is 1451 and Discordant pair is 2989.*
+
+*So the value of Kendall's Tau,* $\tau=\frac{C-D}{C+D}=\frac{1451-2989}{1451+2989}=-0.3463964$
+
+*In the light of the given data, there is some association present between Leisure Screen Time and Uninterrupted Study Time of students. Moreover, the nature of association, according to the ordering in the table, is negative which means that increase in the value of one of the variables would result in decrease in the value of the other. In this case, it may be said that increase in the Leisure Screen Time is somewhat leading to the decrease in the Uninterrupted Study Time of students. This also justifies the common logic and reasoning, as to what one should have expected.*
+
+### [***LEISURE SCREENTIME WITH SOCIAL AWKWARDNESS :***]{.underline}
+
+*To get an idea about how these two variables are associated, two questions were asked in the questionnaire as stated below:*
+
+-   *Your Leisure Screen Time? (consisting of 4 options: \<2hrs, 2-4hrs, 4-6hrs, \>6hrs)*
+
+-   *Now, back in class, do you feel socially awkward while communicating? (consisting of 4 options: Not at all, Neutral, Partly true, Completely agree)*
+
+*The pie diagram of social awkwardness is shown below:*
+
+```{r}
+data.frame(table(soc_awk))
+d1 = data.frame(table(soc_awk))$Freq
+
+pie(d1, labels = paste0(d1,'=',round(100*d1/sum(d1),2),'%'),main = "Pie chart of Social awkwardness among students",col = rainbow(length(d1)))
+legend(-2.45,0.7,legend = data.frame(table(soc_awk))$soc_awk,fill = rainbow(length(d1)) )
+```
+
+*Though 68.4% of the population (i.e., 119 students) does not have any major issues while communicating socially, yet the rest of the population has responded to face some problems in social interactions after getting back in the offline mode.*
+
+*Social awkwardness is divided into 3 categories:*
+
+-   *None (if the student 'not at all' feels socially awkward)*
+
+-   *Neutral (if the shyness of the student remains same in post-covid period as that of pre-covid period in terms of social interactions)*
+
+-   *Present (if the student agrees to experience social awkwardness more in post-covid period than that of pre-covid period)*
+
+```{r}
+soc_awk[which(soc_awk=="Not at all")] = '0'
+soc_awk[which(soc_awk=="Neutral")] = '1'
+soc_awk[which(soc_awk=="Partly true")] = '2'
+soc_awk[which(soc_awk=="Completely agree")] = '3'
+soc_awk = as.numeric(soc_awk)
+
+b11 = sum(ifelse(lst_b>lst_a & soc_awk==0,1,0))
+b12 = sum(ifelse(lst_b>lst_a & soc_awk==1,1,0))
+b13 = sum(ifelse(lst_b>lst_a & soc_awk>1,1,0))
+b21 = sum(ifelse(lst_b==lst_a & soc_awk==0,1,0))
+b22 = sum(ifelse(lst_b==lst_a & soc_awk==1,1,0))
+b23 = sum(ifelse(lst_b==lst_a & soc_awk>1,1,0))
+b31 = sum(ifelse(lst_b<lst_a & soc_awk==0,1,0))
+b32 = sum(ifelse(lst_b<lst_a & soc_awk==1,1,0))
+b33 = sum(ifelse(lst_b<lst_a & soc_awk>1,1,0))
+
+m2 = matrix(c(b11,b12,b13,b21,b22,b23,b31,b32,b33),nrow = 3,byrow = T,dimnames = list(c('none','neutral','present'),c('decreased','remained same','increased')))
+addmargins(m2)
+```
+
+*Now, with respect to these 3 categories of the two variables, the overall responses are arranged into a 3×3 contingency table shown below :*
+
+| Lst \\ Soc_awk | none | neutral | present | total |
+|----------------|------|---------|---------|-------|
+| decreased      | 4    | 4       | 4       | 12    |
+| remained same  | 23   | 17      | 9       | 49    |
+| increased      | 37   | 34      | 42      | 113   |
+| total          | 64   | 55      | 55      | 174   |
+
+```{r}
+ConDisPairs(as.table(m2))[c("C","D")]
+```
+
+*So the total number of Concordant pairs is 3074 and Discordant pair is 1952.*
+
+*So the value of Kendall's Tau,* $\tau=\frac{C-D}{C+D}=\frac{3074-1952}{3074+1952}=0.2232392$
+
+*In the light of the given data, there is some association present between Leisure Screen Time and Social Awkwardness of students. According to the ordering considered in the table, the nature of association is coming out to be positive. Thus, it may be said that increase/decrease in the value of one of the variables results in increase/decrease in the value of the other one. In this case, increase in the Leisure Screen Time leads to the increase in issues while socially interacting, to some extent.*
+
+### [***FINANCIAL CRISIS WITH ACDEMIC PERFORMANCE :***]{.underline}
+
+*To get an idea about how these two variables are associated, two questions were asked in the questionnaire as stated below:*
+
+-   *During Covid, did your family have to go through any kind of financial crisis? (consisting of 2 options: Yes, No)*
+
+-   *Rate your Academic Performance*
+
+*Academic Performance is sub-divided into 3 segments viz., Before Covid, During Covid, and After Covid.*
+
+*The pie diagram of the financial crisis faced by students is shown below:*
+
+```{r}
+data.frame(table(fin_cris))
+d2 = data.frame(table(fin_cris))$Freq
+
+pie(d2, labels = paste0(d2,'=',round(100*d2/sum(d2),2),'%'),main = "Pie chart of Financial crisis faced by students",col = rainbow(length(d2)))
+legend(-2.45,0.7,legend = data.frame(table(fin_cris))$fin_cris,fill = rainbow(length(d2)) )
+```
+
+*Out of 174 students, 65.5% (114 students) did not have to go through any financial crisis during the lockdown period. But, the rest 34.5% (60 students) had to face a financial crisis, during that time.*
+
+*The responses for Academic Performance as rated by the students is shown below:*
+
+```{r}
+data.frame(table(acaperf_b))
+data.frame(table(acaperf_d))
+data.frame(table(acaperf_a))
+
+d3 = data.frame(table(acaperf_b))$Freq
+d4 = data.frame(table(acaperf_d))$Freq
+d5 = data.frame(table(acaperf_a))$Freq
+frq = c(3,15,16,3,25,28,23,56,64,101,54,57,44,24,9)
+rate = c(rep('1',3),rep('2',3),rep('3',3),rep('4',3),rep('5',3))
+covd = rep(c('before covid','during covid','post covid'),5)
+
+ggplot(data.frame(rate,covd,frq),aes(fill=covd,y=frq,x=rate)) + 
+  geom_bar(position = 'dodge',stat = 'identity') +
+  ggtitle("Multiple bar diagram of the Academic performance of students")
+```
+
+*Just by looking at the three plots, one may observe that the academic performance of the students on an average were quite good (most lying around and above 4) during the pre-covid time which then took a quite prominent change during the lockdown period. The most important thing to observe here is that still the downfall in academic performance persists in this post-covid time and it is actually poorer compared to that during the covid crisis.*
+
+*To find the association between these two variables, we first divide one of them, say 'Financial Crisis' (during covid) into 2 categories --*
+
+-   *Yes (if the student had faced financial crisis)*
+
+-   *No (if the student had not gone through any financial crisis)*
+
+*Consequently, 'Academic Performance' (after covid) is also divided into 2 categories --*
+
+-   *3 or Lower (if the academic performance is less than or equal to 3 according to the given scale)*
+
+-   *Greater than 3 (if the academic performance is greater than 3 in the give scale)*
+
+```{r}
+c11 = sum(ifelse(fin_cris=="Yes"&acaperf_a<=3,1,0))
+c12 = sum(ifelse(fin_cris=="Yes"&acaperf_a>3,1,0))
+c21 = sum(ifelse(fin_cris=="No"&acaperf_a<=3,1,0))
+c22 = sum(ifelse(fin_cris=="No"&acaperf_a>3,1,0))
+
+m3 = matrix(c(c11,c12,c21,c22),nrow = 2,byrow = T,dimnames = list(c('3 or lower','greater than 3'),c('Yes','No')))
+addmargins(m3)
+```
+
+*Now, with respect to these 2 categories of the two variables, the overall responses are arranged into a 2×2 contingency table shown below --*
+
+| Fin_cris \\ Academ_perf | 3 or lower | greater than 3 | total |
+|-------------------------|------------|----------------|-------|
+| **yes**                 | 44         | 16             | 60    |
+| **no**                  | 64         | 50             | 114   |
+| **total**               | 108        | 66             | 174   |
+
+```{r}
+ConDisPairs(as.table(m3))[c("C","D")]
+```
+
+*So the total number of Concordant pairs is 2200 and Discordant pair is 1024.*
+
+*So the value of Kendall's Tau,* $\tau=\frac{C-D}{C+D}=\frac{2200-1024}{2200+1024}=0.3647643$
+
+*In the light of the given data, positive association is present between Financial Crisis and Academic Performance. In this case, presence of Financial Crisis is showing a positive association in the decrease of Academic Performance, and similarly, not facing a financial crisis results in the increase of having a good academic performance.*
+
+### [***LEISURE SCREEN TIME WITH ACDEMIC PERFORMANCE :***]{.underline}
+
+*To get an idea about how these two variables are associated, two questions were asked in the questionnaire as stated below:*
+
+-   *Your Leisure Screen Time? (consisting of 4 options: \<2hrs, 2-4hrs, 4-6hrs, \>6hrs)*
+
+-   *Rate your Academic Performance.*
+
+*The graphical representation of both variables were shown previously.*
+
+*To study the measure of the association between these two variables, we first divide one of them, say 'Leisure Screen Time' into 3 categories --*
+
+-   *Decreased (if the screen time in post-covid period is lesser than that of pre-covid period)*
+
+-   *Remained Same (if the screen time in post-covid period is same as that of pre-covid period)*
+
+-   *Increased (if the screen time in post-covid period is more than that of pre-covid period)*
+
+*Similarly, 'Academic Performance' is also divided into 3 categories --*
+
+-   *Decreased (if the academic performance in post-covid period is lesser than that of pre-covid period)*
+
+-   *Remained Same (if the academic performance in post-covid period is same as that of pre-covid period)*
+
+-   *Increased (if the academic performance in post-covid period is more than that of pre-covid period)*
+
+```{r}
+d11 = sum(ifelse(lst_b>lst_a & acaperf_b>acaperf_a,1,0))
+d12 = sum(ifelse(lst_b>lst_a & acaperf_b==acaperf_a,1,0))
+d13 = sum(ifelse(lst_b>lst_a & acaperf_b<acaperf_a,1,0))
+d21 = sum(ifelse(lst_b==lst_a & acaperf_b>acaperf_a,1,0))
+d22 = sum(ifelse(lst_b==lst_a & acaperf_b==acaperf_a,1,0))
+d23 = sum(ifelse(lst_b==lst_a & acaperf_b<acaperf_a,1,0))
+d31 = sum(ifelse(lst_b<lst_a & acaperf_b>acaperf_a,1,0))
+d32 = sum(ifelse(lst_b<lst_a & acaperf_b==acaperf_a,1,0))
+d33 = sum(ifelse(lst_b<lst_a & acaperf_b<acaperf_a,1,0))
+
+m4 = matrix(c(d11,d12,d13,d21,d22,d23,d31,d32,d33),nrow = 3,byrow = T,dimnames = list(c('decreased','remained same','increased'),c('decreased','remained same','increased')))
+addmargins(m4)
+```
+
+| lst \\ academ perf | decreased | remained same | increased | total |
+|--------------------|-----------|---------------|-----------|-------|
+| **decreased**      | 5         | 6             | 1         | 12    |
+| **remained same**  | 25        | 20            | 4         | 49    |
+| **increased**      | 68        | 39            | 6         | 113   |
+| **total**          | 98        | 65            | 11        | 174   |
+
+```{r}
+ConDisPairs(as.table(m4))[c("C","D")]
+```
+
+*So the total number of Concordant pairs is 1650 and Discordant pair is 2498.*
+
+*So the value of Kendall's Tau,* $\tau=\frac{C-D}{C+D}=\frac{1650-2498}{1650+2498}=-0.2044359$
+
+*In the light of the given data, the two variables -- Leisure Screen Time and Academic Performance are associated with each other, to some extent. Their nature of association being negative implies that increase/decrease in the value of one the variables would result in decrease/increase in the value of the other, according to ordering taken in the contingency table. In this case, the lesser the Leisure Screen Time, the better is the Academic Performance.*
+
+### [***ANALYZING CONCENTRATION IN CLASSROOM :***]{.underline}
+
+```{r}
+data.frame(table(class_mode))
+data.frame(table(convenience))
+
+e1 = data.frame(table(class_mode))$Freq
+e2 = data.frame(table(convenience))$Freq
+
+par(mfrow = c(1,2))
+pie(e1, labels = paste0(e1,'(',round(100*e1/sum(e1),2),')%'),sub = "preferred class mode",col = rainbow(length(e1)))
+legend(-1.05,-0.75,legend = data.frame(table(class_mode))$class_mode,fill = rainbow(length(e1)),cex = 0.7)
+
+pie(e2, labels = paste0(e2,'(',round(100*e2/sum(e2),2),')%'),sub = "preferred convenience",col = rainbow(length(e2)))
+legend(-1.05,-0.75,legend = c('being in class','listening videos'),fill = rainbow(length(e2)),cex = 0.7)
+
+mtext("Pie charts of classmode and convenience",side = 3,line = -2,outer = TRUE)
+
+```
+
+*Starting with the fact that, out of the total 174 students, though majority of them (84.5% i.e., 147 students) prefers offline mode of education over online mode,* *still more than a quarter part of the population (32.8% i.e., 57 students) has responded that they are more comfortable with watching 'Recorded videos' of lectures. One of the main reasons for such a scenario can be the lack of concentration in classroom that many students are facing in this post-covid situation.*
+
+*According to our primary data, the change in the concentration in classroom is --*
+
+```{r}
+f11 = data.frame(table(concclass_b[gender=="Male"]))$Freq;f11
+f12 = data.frame(table(concclass_d[gender=="Male"]))$Freq;f12
+f13 = data.frame(table(concclass_a[gender=="Male"]))$Freq;f13
+
+frqm = c(2,21,8,4,29,7,17,32,40,48,11,30,26,4,12)
+conc = c(rep('1',3),rep('2',3),rep('3',3),rep('4',3),rep('5',3))
+covd = rep(c('before covid','during covid','after covid'),5)
+
+ggplot(data.frame(conc,covd,frqm),aes(fill=covd,y=frqm,x=conc)) + 
+  geom_bar(position = 'dodge',stat = 'identity') +
+  ggtitle("Multiple bar diagram of the Concentration of male students")
+
+
+f21 = data.frame(table(concclass_b[gender=="Female"]))$Freq;f21
+f22 = data.frame(table(concclass_d[gender=="Female"]))$Freq;f22
+f23 = data.frame(table(concclass_a[gender=="Female"]))$Freq;f23
+
+frqf = c(11,17,6,43,29,10,23,20,33,0,9,24,0,2,4)
+conc = c(rep('1',3),rep('2',3),rep('3',3),rep('4',3),rep('5',3))
+covd = rep(c('before covid','during covid','after covid'),5)
+
+ggplot(data.frame(conc,covd,frqf),aes(fill=covd,y=frqf,x=conc)) + 
+  geom_bar(position = 'dodge',stat = 'identity') +
+  ggtitle("Multiple bar diagram of the Concentration of female students")
+```
+
+*From the diagrams, we can clearly observe that all the students regardless of their gender, have faced a major setback in concentrating in classroom during the covid period -- full recovery of which is still to be achieved. Thus, many students are still not being able to follow the class properly; as a result of which they are getting inclined to watch the lecture videos again.*
+
+### [***ANALYZING PHYSICAL AND MENTAL HEALTH OF STUDENTS :***]{.underline}
+
+*Besides the aforementioned issues, students also have to face many physical and mental health related problems due to the online mode of education.*
+
+*To get an estimate of the physical health, two questions were asked in the questionnaire:*
+
+-   *During the online mode, did you feel any kind of pain in the neck or back for sitting for too long in front of the devices? (consisting of two option -- Yes / No)*
+
+```{r}
+data.frame(table(pain))
+g1 = data.frame(table(pain))$Freq
+pie(g1, labels = paste0(g1,'(',round(100*g1/sum(g1),2),')%'),main = "pain in the neck or back",col = rainbow(length(g1)))
+legend("bottomleft",legend = c('no','yes'),fill = rainbow(length(g1)))
+```
+
+*76.4% i.e., 133 students out of 174 students have responded that they experienced pain in the neck or back for sitting too long in front of the devices.*
+
+*To get an estimate of the mental health, three questions were asked in the questionnaire:*
+
+-   *Rate your worry about your health*
+
+-   *Rate your stress level in terms of inability to concentrate/poor sleep*
+
+-   *Did you experience negative feelings?*
+
+*These three questions were further sub-divided into 3 segments viz., Before Covid, During Covid and After Covid.*
+
+*The responses obtained are presented in the diagrams below:*
+
+```{r}
+par(mfrow=c(1,3))
+barplot(table(health_b),sub="(Before Covid)",xlab = "Rated: 1-None to 5-Too Much",ylab = "No.of Students",col="purple",font.sub=4,border="dark blue",density=50,angle=45,ylim=c(0,70))
+
+barplot(table(health_d),sub="(During Covid)",xlab = "Rated: 1-None to 5-Too Much",ylab = "No.of Students",col="purple",font.sub=4,border="dark blue",density=50,angle=45,ylim=c(0,70))
+
+barplot(table(health_a),sub="(After Covid)",xlab = "Rated: 1-None to 5-Too Much",ylab = "No.of Students",col="purple",font.sub=4,border="dark blue",density=50,angle=45,ylim=c(0,70))
+
+mtext("Barplots of worry about health",side = 3,line = -2,outer = TRUE)
+```
+
+```{r}
+par(mfrow=c(1,3))
+barplot(table(stress_b),sub="(Before Covid)",xlab = "Rated: 1-Negligible to 5-High",ylab = "No.of Students",col="cyan",font.sub=4,border="dark blue",density=50,angle=45,ylim=c(0,70))
+
+barplot(table(stress_d),sub="(During Covid)",xlab = "Rated: 1-Negligible to 5-High",ylab = "No.of Students",col="cyan",font.sub=4,border="dark blue",density=50,angle=45,ylim=c(0,70))
+
+barplot(table(stress_a),sub="(After Covid)",xlab = "Rated: 1-Negligible to 5-High",ylab = "No.of Students",col="cyan",font.sub=4,border="dark blue",density=50,angle=45,ylim=c(0,70))
+
+mtext("Barplots of stress level",side = 3,line = -2,outer = TRUE)
+```
+
+```{r}
+par(mfrow=c(1,3))
+barplot(table(negfeel_b),sub="(Before Covid)",xlab = "Rated: 1-Negligible to 5-Too frequent",ylab = "No.of Students",col="red",font.sub=4,border="black",density=50,angle=45,ylim=c(0,70))
+
+barplot(table(negfeel_d),sub="(During Covid)",xlab = "Rated: 1-Negligible to 5-Too frequent",ylab = "No.of Students",col="red",font.sub=4,border="black",density=50,angle=45,ylim=c(0,70))
+
+barplot(table(negfeel_a),sub="(After Covid)",xlab = "Rated: 1-Negligible to 5-Too frequent",ylab = "No.of Students",col="red",font.sub=4,border="black",density=50,angle=45,ylim=c(0,70))
+
+mtext("Barplots of experiencing negative feelings",side = 3,line = -2,outer = TRUE)
+```
+
+*Thus, we can see that stress level, experiencing negative feelings and worrying about health -- all these were, on an average very low before Covid, which now has reached such a situation that needs serious attention.*
+
+# [***CONCLUSION***]{.underline}
+
+*This study aimed to shed light on how the COVID-19 pandemic has affected the overall day-to-day life of the students. Our sample of 174 participants has clearly shown that students are facing many changes -- be it academically, socially or psychologically, in this post-covid situation.*
+
+*It has been seen that on an average, the concentration of students has decreased -- both in case of following lectures of the professors and in self-studying, which is further affecting the academic performance of the students. Besides academics, many students seem to be facing challenges while communicating socially, which in turn may increase the chances of loneliness, stress, anxiety etc. Moreover, students are facing serious mental health issues as the data have shown. Many students are experiencing negative thoughts and are showing high stress level as they are being unable to concentrate properly or having inappropriate sleep schedules.*
+
+*Thus, in short, we may conclude that the COVID-19 pandemic has a significant impact on student's way of life. The majority of the student community has been badly affected -- effects of which still prevail in this post-covid period. It is a very unfortunate event for the students, but all we can do now is try and keeping in mind the precautions, progress to make ourselves the best version of us.*
